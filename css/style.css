@@ -243,3 +243,115 @@ dialog.lb button { font: 500 .9rem/1 var(--f-display); color: #F3E8DF; backgroun
 @media (min-width: 1600px) {
   :root { --max: 1360px; }
 }
+
+/* =========================================================
+   Motion & micro-interactions
+   Everything here is skipped when the visitor has
+   "reduce motion" turned on (see the rule near the top).
+   ========================================================= */
+@keyframes rise   { from { opacity: 0; transform: translateY(16px); } }
+@keyframes drop   { 0% { opacity: 0; transform: translateY(-28px); } 70% { opacity: 1; transform: translateY(3px); } 100% { transform: none; } }
+@keyframes fade   { from { opacity: 0; } }
+@keyframes build  { from { clip-path: inset(-2% 100% -2% 0); } to { clip-path: inset(-2% 0 -2% 0); } }
+@keyframes blink  { 0%, 88%, 100% { opacity: 1; } 90%, 96% { opacity: 0; } }
+@keyframes hop    { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -4px); } }
+@keyframes pop    { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes lb-in  { from { opacity: 0; transform: scale(.96) translateY(8px); } }
+@keyframes bd-in  { from { opacity: 0; } }
+@keyframes spark  { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 1. Hero: the pixel wordmark builds left to right, then the type settles in */
+  .cover .graphic   { animation: rise .7s cubic-bezier(.2,.7,.2,1) .05s both; }
+  .cover .pm1       { animation: fade .01s steps(1) .25s both, blink 5s steps(1) 3s infinite; }
+  .cover .wm        { animation: build 1.15s steps(14, end) .3s both; }
+  .cover .portfolio { animation: drop .65s cubic-bezier(.2,.7,.2,1) 1.25s both; }
+  .cover .pm2       { animation: fade .01s steps(1) 1.4s both, blink 4.2s steps(1) 4s infinite; }
+  .cover .tag-a     { animation: fade .6s ease 1.5s both; }
+  .cover .tag-b     { animation: fade .6s ease 1.65s both; }
+  .cover .design    { animation: rise .7s cubic-bezier(.2,.7,.2,1) 1.55s both; }
+  .hero-notes       { animation: fade .6s ease 1.6s both; }
+  .intro            { animation: rise .8s cubic-bezier(.2,.7,.2,1) 1.75s both; }
+
+  /* 2. Scroll reveal (added by script only to things below the fold) */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* 3. Pixel marks hop when their owner is hovered */
+  .brand:hover .px, h2:hover > .px, .project:hover .cat .px, .hi:hover i { animation: hop .45s steps(2) 2; }
+  .contact-box h2:hover em { color: var(--teal); }
+
+  /* 4. Filtering: projects fade out, then the new set fades in */
+  .project { transition: opacity .25s ease, transform .35s cubic-bezier(.2,.7,.2,1); }
+  .project.leaving { opacity: 0; transform: translateY(10px); }
+  .project.entering { opacity: 0; transform: translateY(18px); }
+  .filters button span.bump { display: inline-block; animation: pop .35s ease; }
+
+  /* 5. Lightbox opens with a soft zoom */
+  dialog.lb[open] { animation: lb-in .32s cubic-bezier(.2,.7,.2,1); }
+  dialog.lb[open]::backdrop { animation: bd-in .3s ease; }
+}
+
+/* Nav: a pixel-stepped underline that grows on hover and marks the current section */
+.top nav a { position: relative; padding-block: 4px; }
+.top nav a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--green);
+  transform: scaleX(0); transform-origin: left; transition: transform .32s steps(6);
+}
+.top nav a:hover::after, .top nav a[aria-current="true"]::after { transform: scaleX(1); }
+.top nav a[aria-current="true"] { color: var(--ink); }
+
+/* Scroll progress: a thin green bar under the header that fills in pixel steps */
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--green); transform-origin: left; transform: scaleX(0); pointer-events: none; }
+
+/* Filter chips: press feedback */
+.filters button { transition: background .15s, color .15s, border-color .15s, transform .15s; }
+.filters button:hover { transform: translateY(-1px); }
+.filters button:active { transform: scale(.96); }
+
+/* Project images: lift, deeper shadow */
+.shot.framed img { transition: box-shadow .35s ease; }
+.shot:hover { transform: translateY(-5px); }
+.shot.framed:hover img { box-shadow: 0 1px 0 rgba(74,30,22,.06), 0 24px 44px -20px rgba(74,30,22,.55); }
+.shot:active { transform: translateY(-2px) scale(.995); }
+
+/* "View" badge that follows the pointer over images (mouse/trackpad only) */
+.view-badge {
+  position: fixed; left: 0; top: 0; z-index: 40; pointer-events: none;
+  font: 600 .78rem/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--paper); background: var(--ink); border-radius: 999px; padding: 9px 13px 9px 11px;
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transform: translate3d(var(--x, -100px), var(--y, -100px), 0) scale(.6);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.view-badge .px { font-size: 9px; color: var(--teal); margin-top: -2px; }
+.view-badge.on { opacity: 1; transform: translate3d(var(--x), var(--y), 0) scale(1); }
+@media (hover: none), (pointer: coarse) { .view-badge { display: none; } }
+
+/* Experience rows: a teal pixel slides in next to the hovered job */
+.jobs .row { position: relative; transition: color .2s; }
+.jobs .row::before {
+  content: ""; position: absolute; left: -16px; top: .55em; width: 7px; height: 7px; background: var(--teal);
+  opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .25s steps(3);
+}
+.jobs .row:hover::before { opacity: 1; transform: none; }
+.jobs .row:hover dt { color: var(--teal); }
+.row dt { transition: color .2s; }
+
+/* Skill chips */
+.chips li { transition: border-color .2s, background .2s, transform .2s; }
+.chips li:hover { border-color: var(--ink); background: rgba(255,255,255,.18); transform: translateY(-2px); }
+
+/* Copy button: confirmation state + a small pixel burst */
+.copy { position: relative; transition: background .15s, color .15s, transform .15s; }
+.copy:active { transform: scale(.95); }
+.copy.done { background: var(--green); border-color: var(--green); color: #fff; }
+.copy .spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; background: var(--green); pointer-events: none; animation: spark .55s steps(5) forwards; }
+
+/* LinkedIn link: underline thickens on hover */
+.link-row a.v { transition: text-decoration-thickness .2s, color .2s; }
+.link-row a.v:hover { text-decoration-thickness: 2px; color: var(--green); }
+
+/* Photo: gentle tilt on hover */
+.photo img { transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+.photo:hover img { transform: rotate(-2deg) scale(1.02); }
